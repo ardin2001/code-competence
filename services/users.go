@@ -16,7 +16,7 @@ type userStrService struct {
 	userR repositories.UserRepositories
 }
 
-func NewUserService(userR repositories.UserRepositories) UserIntService {
+func NewUserServices(userR repositories.UserRepositories) UserIntService {
 	return &userStrService{
 		userR: userR,
 	}

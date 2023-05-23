@@ -22,14 +22,14 @@ type UserStrController struct {
 	userR services.UserIntService
 }
 
-func NewUserController(uc services.UserIntService) UserIntController {
+func NewUserControllers(uc services.UserIntService) UserIntController {
 	return &UserStrController{
 		userR: uc,
 	}
 }
-func (us *UserStrController) GetUserController(c echo.Context) error {
+func (uc *UserStrController) GetUserController(c echo.Context) error {
 	getDataUser := middleware.GetJwtToken(c)
-	user, check := us.userR.GetUserService(getDataUser.ID)
+	user, check := uc.userR.GetUserService(getDataUser.ID)
 	if check != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": check.Error(),

@@ -19,9 +19,18 @@ import (
 
 var (
 	db, _ = configs.InitDB()
-	userR = repositories.NewRepository(db)
-	userS = services.NewUserService(userR)
-	userC = controllers.NewUserController(userS)
+
+	userR = repositories.NewUserRepositories(db)
+	userS = services.NewUserServices(userR)
+	userC = controllers.NewUserControllers(userS)
+
+	productR = repositories.NewProductRepositories(db)
+	productS = services.NewProductServices(productR)
+	productC = controllers.NewProductControllers(productS)
+
+	categoryR = repositories.NewCategoryRepositories(db)
+	categoryS = services.NewCategoryServices(categoryR)
+	categoryC = controllers.NewCategoryControllers(categoryS)
 )
 
 func Routers() *echo.Echo {
@@ -39,11 +48,26 @@ func Routers() *echo.Echo {
 		return c.String(http.StatusOK, "Please, login here !, localhost:8000/login")
 	})
 
+	// users
 	e.POST("/login", userC.LoginUserController)
 	e.POST("/register", userC.CreateUserController)
 	e.GET("/users", userC.GetUserController, echojwt.WithConfig(config))
-	e.DELETE("/users", userC.DeleteUserController, echojwt.WithConfig(config))
 	e.PUT("/users", userC.UpdateUserController, echojwt.WithConfig(config))
+	e.DELETE("/users", userC.DeleteUserController, echojwt.WithConfig(config))
+
+	// products
+	e.GET("/items", productC.GetProductsController, echojwt.WithConfig(config))
+	e.GET("/items/:id", productC.GetProductController, echojwt.WithConfig(config))
+	e.POST("/items", productC.CreateProductController, echojwt.WithConfig(config))
+	e.PUT("/items/:id", productC.UpdateProductController, echojwt.WithConfig(config))
+	e.DELETE("/items/:id", productC.DeleteProductController, echojwt.WithConfig(config))
+
+	// categories
+	e.GET("/categories", categoryC.GetCategoriesController, echojwt.WithConfig(config))
+	e.GET("/items/category/:category_id", categoryC.GetCategoryController, echojwt.WithConfig(config))
+	e.POST("/categories", categoryC.CreateCategoryController, echojwt.WithConfig(config))
+	e.PUT("/categories/:id", categoryC.UpdateCategoryController, echojwt.WithConfig(config))
+	e.DELETE("/categories/:id", categoryC.DeleteCategoryController, echojwt.WithConfig(config))
 
 	return e
 }
