@@ -2,12 +2,15 @@ package controllers
 
 import (
 	"echo_golang/configs"
+	"echo_golang/helpers"
 	middleware "echo_golang/middlewares"
 	"echo_golang/models"
 	"echo_golang/services"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserIntController interface {
@@ -45,6 +48,9 @@ func (uc *UserStrController) GetUserController(c echo.Context) error {
 func (us *UserStrController) CreateUserController(c echo.Context) error {
 	user := models.User{}
 	c.Bind(&user)
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	user.Password = string(hashedPassword)
 
 	_, check := us.userR.CreateService(&user)
 
@@ -96,15 +102,27 @@ func (us *UserStrController) UpdateUserController(c echo.Context) error {
 }
 
 func (us *UserStrController) LoginUserController(c echo.Context) error {
+	userRequest := models.User{}
 	user := models.User{}
-	c.Bind(&user)
-	DB, _ := configs.InitDB()
-	err := DB.Where("name = ? AND password = ?", user.Name, user.Password).First(&user).Error
+	c.Bind(&userRequest)
+	fmt.Println(userRequest)
 
+	DB, _ := configs.InitDB()
+	err := DB.Where("name = ?", userRequest.Name).First(&user).Error
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-			"message": "login failed username or password",
-			"error":   err.Error(),
+		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
+			Data:    nil,
+			Message: "wrong username",
+			Status:  false,
+		})
+	}
+
+	errPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userRequest.Password))
+	if errPassword != nil {
+		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
+			Data:    nil,
+			Message: "wrong password",
+			Status:  false,
 		})
 	}
 
