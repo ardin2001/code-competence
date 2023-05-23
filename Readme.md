@@ -1,6 +1,7 @@
 # Dokumentasi REST API Tugas Code Competence
 
 ### Fitur Utama Tugas
+<ol>
 <li>localhost:8000/items (GET)</li>
   
 ![no2](/screenshots/products/get.jpg)
@@ -28,7 +29,8 @@
 <li>localhost:8000/items?keyword=raka (GET)</li>
   
 ![no2](/screenshots/products/keyword.jpg)
-
+</ol>
+  
 ### Fitur User ( login dan register)
 <ol>
 <li>localhost:8000/register (POST)</li>
