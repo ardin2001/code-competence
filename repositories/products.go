@@ -38,7 +38,7 @@ func (pr *ProductStructR) GetProductsRepository(name string) ([]models.Product, 
 
 func (pr *ProductStructR) GetProductRepository(id string) (*models.Product, error) {
 	var product models.Product
-	check := pr.DB.First(&product, id).Error
+	check := pr.DB.First(&product, "id = ?", id).Error
 	if check != nil {
 		return nil, check
 	}

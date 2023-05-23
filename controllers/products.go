@@ -5,7 +5,9 @@ import (
 	"echo_golang/models"
 	"echo_golang/services"
 	"net/http"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -66,6 +68,10 @@ func (pc *ProductStructC) CreateProductController(c echo.Context) error {
 
 	product := models.Product{}
 	c.Bind(&product)
+
+	uuidWithHyphen := uuid.New()
+	uuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)
+	product.ID = uuid
 
 	_, check := pc.productS.CreateProductService(&product)
 
