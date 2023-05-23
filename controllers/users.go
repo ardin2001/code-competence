@@ -6,7 +6,6 @@ import (
 	middleware "echo_golang/middlewares"
 	"echo_golang/models"
 	"echo_golang/services"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -32,16 +31,18 @@ func NewUserControllers(uc services.UserIntService) UserIntController {
 }
 func (uc *UserStrController) GetUserController(c echo.Context) error {
 	getDataUser := middleware.GetJwtToken(c)
-	user, check := uc.userR.GetUserService(getDataUser.ID)
-	if check != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": check.Error(),
-			"user":    user,
+	user, err := uc.userR.GetUserService(getDataUser.ID)
+	if err != nil {
+		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
+			Data:    nil,
+			Message: err.Error(),
+			Status:  false,
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success get data user",
-		"users":   user,
+	return helpers.Response(c, http.StatusOK, helpers.ResponseModel{
+		Data:    user,
+		Message: "Successfully Get Data",
+		Status:  true,
 	})
 }
 
@@ -52,32 +53,38 @@ func (us *UserStrController) CreateUserController(c echo.Context) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hashedPassword)
 
-	_, check := us.userR.CreateService(&user)
+	_, err := us.userR.CreateService(&user)
 
-	if check != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": check.Error(),
+	if err != nil {
+		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
+			Data:    nil,
+			Message: err.Error(),
+			Status:  false,
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
-		"data":    user,
+	return helpers.Response(c, http.StatusOK, helpers.ResponseModel{
+		Data:    user,
+		Message: "Successfully Created Data",
+		Status:  true,
 	})
 
 }
 
 func (us *UserStrController) DeleteUserController(c echo.Context) error {
 	getDataUser := middleware.GetJwtToken(c)
-	check := us.userR.DeleteService(getDataUser.ID)
+	err := us.userR.DeleteService(getDataUser.ID)
 
-	if check != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": check.Error(),
+	if err != nil {
+		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
+			Data:    nil,
+			Message: err.Error(),
+			Status:  false,
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
-		"data":    "data user berhasil dihapus",
+	return helpers.Response(c, http.StatusOK, helpers.ResponseModel{
+		Data:    getDataUser,
+		Message: "Successfully deleted Data",
+		Status:  true,
 	})
 
 }
@@ -87,32 +94,34 @@ func (us *UserStrController) UpdateUserController(c echo.Context) error {
 	user := models.User{}
 	c.Bind(&user)
 
-	dataUser, check := us.userR.UpdateService(&user, getDataUser.ID)
+	dataUser, err := us.userR.UpdateService(&user, getDataUser.ID)
 
-	if check != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": check.Error(),
-			"data":    dataUser,
+	if err != nil {
+		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
+			Data:    nil,
+			Message: err.Error(),
+			Status:  false,
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
-		"data":    dataUser,
+	return helpers.Response(c, http.StatusOK, helpers.ResponseModel{
+		Data:    dataUser,
+		Message: "Successfully Updated Data",
+		Status:  true,
 	})
+
 }
 
 func (us *UserStrController) LoginUserController(c echo.Context) error {
 	userRequest := models.User{}
 	user := models.User{}
 	c.Bind(&userRequest)
-	fmt.Println(userRequest)
 
 	DB, _ := configs.InitDB()
 	err := DB.Where("name = ?", userRequest.Name).First(&user).Error
 	if err != nil {
 		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
 			Data:    nil,
-			Message: "wrong username",
+			Message: "Wrong username",
 			Status:  false,
 		})
 	}
@@ -121,15 +130,16 @@ func (us *UserStrController) LoginUserController(c echo.Context) error {
 	if errPassword != nil {
 		return helpers.Response(c, http.StatusBadRequest, helpers.ResponseModel{
 			Data:    nil,
-			Message: "wrong password",
+			Message: "Wrong password",
 			Status:  false,
 		})
 	}
 
 	token, _ := middleware.CreateToken(user.ID, user.Name)
-	userresponse := models.UserResponse{ID: user.ID, Name: user.Name, Email: user.Email, Token: token}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "login success",
-		"users":   userresponse,
+	userResponse := models.UserResponse{ID: user.ID, Name: user.Name, Email: user.Email, Token: token}
+	return helpers.Response(c, http.StatusOK, helpers.ResponseModel{
+		Data:    userResponse,
+		Message: "Login Success",
+		Status:  true,
 	})
 }

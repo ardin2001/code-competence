@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"echo_golang/configs"
 	"echo_golang/models"
 
 	"gorm.io/gorm"
@@ -27,8 +26,7 @@ func NewUserRepositories(db *gorm.DB) UserRepositories {
 func (us *UserRepository) GetUserRepository(id uint) (*models.User, error) {
 	var user models.User
 
-	DB, _ := configs.InitDB()
-	check := DB.First(&user, id).Error
+	check := us.DB.First(&user, id).Error
 	if check != nil {
 		return nil, check
 	}
@@ -36,15 +34,15 @@ func (us *UserRepository) GetUserRepository(id uint) (*models.User, error) {
 }
 
 func (us *UserRepository) DeleteRepository(id uint) error {
-	DB, _ := configs.InitDB()
-	check := DB.Delete(&models.User{}, &id).Error
+
+	check := us.DB.Delete(&models.User{}, &id).Error
 
 	return check
 }
 
 func (us *UserRepository) CreateRepository(user *models.User) (*models.User, error) {
-	DB, _ := configs.InitDB()
-	check := DB.Save(user).Error
+
+	check := us.DB.Save(user).Error
 	if check != nil {
 		return nil, check
 	}
@@ -52,27 +50,9 @@ func (us *UserRepository) CreateRepository(user *models.User) (*models.User, err
 }
 
 func (us *UserRepository) UpdateRepository(userId *models.User, id uint) (*models.User, error) {
-	DB, _ := configs.InitDB()
-	var user models.User
-
-	err := DB.First(&user, id).Error
-	if err != nil {
-		return nil, err
-	}
-
-	if userId.Name != "" {
-		user.Name = userId.Name
-	}
-	if userId.Email != "" {
-		user.Email = userId.Email
-	}
-	if userId.Password != "" {
-		user.Password = userId.Password
-	}
-
-	check := DB.Save(user).Error
+	check := us.DB.Save(&userId).Error
 	if check != nil {
 		return nil, check
 	}
-	return &user, check
+	return userId, check
 }
